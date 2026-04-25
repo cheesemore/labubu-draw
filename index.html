@@ -48,6 +48,20 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
+        /* 手机端微信适配 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 1.5rem;
+            }
+            .card-wrapper {
+                height: 380px;
+            }
+            .card {
+                width: 240px;
+                height: 336px;
+            }
+        }
         .card.drawing {
             animation: shake 0.5s ease-in-out 3;
         }
