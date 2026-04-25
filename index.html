@@ -34,10 +34,32 @@
         .card-wrapper {
             perspective: 1000px;
             margin-bottom: 2rem;
-            height: 450px;
+            min-height: 450px;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 2rem;
+            transition: all 0.5s ease;
+        }
+        /* 笑话容器 */
+        .joke-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+            text-align: left;
+        }
+        .card-wrapper.show-joke .joke-container {
+            width: auto;
+            opacity: 1;
         }
         .card {
             width: 300px;
@@ -216,6 +238,20 @@
         }
         /* 手机端按钮适配 */
         @media (max-width: 768px) {
+            .card-wrapper {
+                min-height: auto;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .card {
+                width: 240px;
+                height: 336px;
+            }
+            .joke-container {
+                max-width: 100%;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
             .draw-btn, .preview-btn {
                 padding: 12px 25px;
                 font-size: 1rem;
@@ -231,7 +267,7 @@
 <body>
     <div class="container">
         <h1>🎴 悠悠小朋友专属抽卡页面</h1>
-        <div class="card-wrapper">
+        <div class="card-wrapper" id="cardWrapper">
             <div class="card" id="card">
                 <div class="card-face card-front">
                     ?
@@ -239,6 +275,9 @@
                 <div class="card-face card-back" id="cardBack">
                     <img id="cardImg" src="" alt="抽到的卡片">
                 </div>
+            </div>
+            <div class="joke-container" id="jokeContainer">
+                <span id="jokeText"></span>
             </div>
         </div>
         <div style="margin-bottom: 1rem;">
@@ -277,6 +316,59 @@
         let isDrawing = false;
         let hasDrawn = false;
         let lastDrawnCard = null; // 记录上一次抽到的卡，避免连续重复
+        let lastJokeIndex = null; // 记录上一次显示的笑话，避免连续重复
+        // Labubu小笑话库，适合小朋友看
+        const jokes = [
+            "为什么Labubu走路总是蹦蹦跳跳的？因为它的小短腿太可爱啦，根本停不下来！",
+            "老师问Labubu：如果你有5个苹果，吃了2个还剩几个？Labubu哭着说：剩下0个！因为我太爱吃苹果了，会全部吃光光！",
+            "什么动物最会做手工？是Labubu呀！它天天都给自己做各种各样的可爱头套，手巧得很~",
+            "Labubu去医院体检，医生说它心跳特别快，为什么？因为它看到医生手里的针管，吓得小心脏扑通扑通跳呀！",
+            "为什么Labubu总是把家里的镜子照得特别亮？因为它太喜欢自己的小尖耳朵啦，天天要对着镜子看好几遍！",
+            "从前有个小番茄，走着走着突然摔倒了，为什么？因为它看到Labubu长得太可爱，笑到腿软站不住啦！",
+            "Labubu去买冰淇淋，老板问它要什么口味，它说要“可爱多”，为什么？因为它觉得自己已经够可爱了，再多一点可爱也没关系~",
+            "数学题：26个字母里，如果E和T走了还剩多少个？Labubu抢答：22个！因为ET开着UFO走的，带走了4个字母！我聪明吧😎",
+            "为什么Labubu从来不怕黑？因为它的小眼睛在黑夜里也亮晶晶的，像小星星一样，什么都看得见！",
+            "有一天Labubu去钓鱼，钓了半天什么都没钓到，为什么？因为它把自己的小零食都偷偷喂给小鱼了，小鱼都吃饱了就不咬钩啦~",
+            "为什么Labubu的书包总是鼓鼓的？因为里面除了课本，还装了好多小零食、小玩具、小贴纸，应有尽有~",
+            "什么动物记性最差？是Labubu呀！它经常出门买东西，走到半路就忘记自己要买什么了~",
+            "为什么Labubu吃饺子的时候总喜欢蘸很多醋？因为他觉得酸溜溜的特别开胃，吃再多也不会腻~",
+            "Labubu去买帽子，老板拿了最小码的儿童帽给他，他戴上去帽子直接把他整个脸都盖住了，为什么？因为他的头太小了呀~",
+            "什么东西明明是你的，别人却用得比你多？是Labubu的名字呀！大家天天喊它的名字，比它自己喊的还多~",
+            "为什么Labubu总喜欢穿带帽子的衣服？因为下雨的时候可以不用打伞，直接把帽子戴上就行，还能藏起来玩捉迷藏~",
+            "有一天Labubu去玩跷跷板，他和一个比他重很多的小朋友一起玩，被翘在半天下不来，急得哇哇大叫，却觉得特别好玩~",
+            "什么东西会跟着你走，你走它也走，你停它也停，白天有太阳的时候它就出来，晚上没有光的时候它就不见？是影子呀！Labubu特别喜欢踩自己的影子玩~",
+            "为什么Labubu每次睡觉前都要听妈妈讲故事？因为听故事睡觉特别香，能做个好梦，妈妈讲的故事都特别有意思~",
+            "Labubu去超市买东西，看到一个小朋友把货架上的玩具弄掉了，他赶紧跑过去把玩具一个个捡起来放回原位，超市阿姨都夸他是懂事的好孩子~",
+            "什么动物跑的最快？是猎豹呀！猎豹跑起来特别快，一小时能跑100多公里，比汽车还快，Labubu说他跑的也很快，运动会还拿过第三名呢~",
+            "为什么Labubu每次看电视的时候都要吃点零食？因为他觉得看电视的时候配点零食，才是最享受的，不然干看电视太没意思了~",
+            "Labubu看到一个小朋友在摘花坛里的花，他赶紧跑过去制止：小花也是有生命的，你摘了它就会死掉的，小朋友听完特别不好意思~",
+            "什么东西你越想抓住它，它就跑的越快，你抓不住它，也留不住它？是时间呀！所以要好好珍惜时间，好好学习好好玩~",
+            "为什么Labubu总喜欢收集各种各样的瓶盖？他觉得不同的瓶盖颜色图案都不一样，特别好看，可以做成好看的书签~",
+            "Labubu学打篮球，投了好多次都投不进去，但是他没有放弃，练了一下午终于投进去了第一个球，高兴得蹦了三尺高~",
+            "什么动物有两个翅膀但是不会飞，跑的还特别快？是鸵鸟呀！Labubu第一次知道鸵鸟不会飞的时候特别惊讶，以为有翅膀的都会飞呢~",
+            "为什么Labubu每次吃烤肉都要吃烤五花肉？因为烤五花肉肥而不腻，烤的焦焦的，蘸上酱料包上生菜吃，特别香~",
+            "Labubu在路上看到一个小朋友摔倒了，膝盖都摔破了，他赶紧跑过去扶起来，拿出自己的创可贴给小朋友贴上，还把糖分给小朋友吃~",
+            "什么东西每天早上叫你起床，到点就响，你不想起都不行？是闹钟呀！Labubu的小闹钟每天早上七点都会准时叫他起床，从来都不会晚~",
+            "Labubu去买草莓，老板说草莓特别甜，不甜不要钱，Labubu说：那你给我来两斤不甜的，我妈妈最近咳嗽，不能吃甜的~",
+            "老师问：如果教室着火了你会怎么做？Labubu说：我会先把我的零食和玩具带上，再跑出去，不然烧没了我就没有零食吃了~",
+            "有一天小鸭子去海边游泳，游完上岸晒了会太阳，结果变成了烤鸭，Labubu听完笑的直打滚，说小鸭子也太可怜了~",
+            "妈妈问Labubu长大了会不会孝顺妈妈？Labubu说当然会呀，我长大了要给妈妈买好多好吃的，买漂亮衣服，带妈妈去全世界旅游~",
+            "为什么面包和面条吵架，旁边的馒头说你们别吵了我最好吃？Labubu走过来说你们都好吃，我不挑食，吃什么都香~",
+            "Labubu去参加学校的接力赛，他是最后一棒，接到棒之后拼命的跑，超过了好几个选手，最后他们班拿了第一名，全班都把他举了起来~",
+            "为什么Labubu吃芒果会过敏，但还是忍不住想吃？他说芒果那么好吃，哪怕过敏长红点也值得，大不了痒几天就好了~",
+            "Labubu去乡下爷爷家挖红薯，挖了好多大大小小的红薯，晚上爷爷烤了红薯给他吃，特别甜，他说自己挖的红薯就是比买的好吃~",
+            "Labubu的梦想是长大了当一名宇航员，坐火箭去太空看看，看看月球上有没有嫦娥和玉兔，看看火星上有没有外星人~",
+            "为什么Labubu写作业的时候总爱放歌听？因为他觉得放歌听写作业更有动力，写的更快，不然安安静静的太无聊了，容易犯困~",
+            "有一天Labubu的遥控飞机飞到树上拿不下来了，他赶紧爬上去帮小弟弟把飞机够了下来，小弟弟特别感谢他，把遥控飞机借给他玩了好久~",
+            "为什么Labubu总爱把铅笔盒塞得满满的？因为里面除了文具，还藏了好多小贴纸、小石子、糖纸，都是他的宝贝~",
+            "什么动物冬天要冬眠睡一整个冬天？是熊呀！Labubu说他冬天也特别想冬眠，不想起床上学，想在家睡一整个冬天，但是妈妈不同意~",
+            "为什么Labubu喝奶茶总要加三种配料？因为每一口都能吃到不同的东西，口感特别丰富，喝起来特别满足，不然光喝奶茶太单调了~",
+            "Labubu去买帽子，找了好久都找不到合适的，最后妈妈给他买了个宠物戴的小帽子，刚好合适，他特别喜欢，天天戴着出去~",
+            "什么东西你站在它面前，它就会照出你的样子，你笑它也笑，你哭它也哭？是镜子呀！Labubu特别喜欢照镜子，穿新衣服总要照好久，觉得自己特别帅~",
+            "为什么Labubu总喜欢穿带口袋的衣服？因为口袋可以装好多小零食小玩具，出去玩的时候特别方便，想吃就吃想玩就玩，不用拿包~",
+            "Labubu去公园玩秋千，荡的特别高，都快要碰到树枝了，他一点都不害怕，反而特别开心，觉得自己像飞起来了一样~",
+            "为什么Labubu每次吃饭之前都要认真洗手？因为老师说饭前便后要洗手，不然手上的细菌会吃到肚子里，会生病的~"
+        ];
         // 优化后的随机抽卡，避免连续抽到相同的卡
         function drawCard() {
             const totalWeight = cards.reduce((sum, card) => sum + card.weight, 0);
@@ -305,10 +397,14 @@
         drawBtn.addEventListener('click', () => {
             if (isDrawing) return;
             if (hasDrawn) {
-                // 重置状态
-                cardEl.classList.remove('flipped');
-                drawBtn.textContent = '抽 一 次';
-                hasDrawn = false;
+                // 先隐藏笑话区域，等动画结束再重置卡片
+                document.getElementById('cardWrapper').classList.remove('show-joke');
+                setTimeout(() => {
+                    // 重置状态
+                    cardEl.classList.remove('flipped');
+                    drawBtn.textContent = '抽 一 次';
+                    hasDrawn = false;
+                }, 500); // 和笑话动画时长一致
                 return;
             }
             isDrawing = true;
@@ -321,14 +417,24 @@
                 cardEl.classList.remove('drawing');
                 // 先翻到背面
                 cardEl.classList.add('flipped');
-                // 翻转到一半的时候设置图片
+                // 翻转到一半的时候设置图片和笑话
                 setTimeout(() => {
                     const result = drawCard();
                     cardImg.src = result.img;
                     cardImg.alt = `${result.value}分${result.name}卡`;
+                    
+                    // 随机拿一个不重复的笑话
+                    let jokeIndex;
+                    do {
+                        jokeIndex = Math.floor(Math.random() * jokes.length);
+                    } while (jokeIndex === lastJokeIndex && jokes.length > 1);
+                    lastJokeIndex = jokeIndex;
+                    document.getElementById('jokeText').textContent = jokes[jokeIndex];
                 }, 400);
-                // 动画结束，恢复按钮
+                // 动画结束，显示笑话，恢复按钮
                 setTimeout(() => {
+                    // 显示笑话区域
+                    document.getElementById('cardWrapper').classList.add('show-joke');
                     isDrawing = false;
                     drawBtn.disabled = false;
                     drawBtn.textContent = '再抽一次';
