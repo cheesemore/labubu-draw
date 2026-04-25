@@ -276,17 +276,31 @@
         const cardImg = document.getElementById('cardImg');
         let isDrawing = false;
         let hasDrawn = false;
-        // 加权随机抽卡
+        let lastDrawnCard = null; // 记录上一次抽到的卡，避免连续重复
+        // 优化后的随机抽卡，避免连续抽到相同的卡
         function drawCard() {
             const totalWeight = cards.reduce((sum, card) => sum + card.weight, 0);
-            let random = Math.random() * totalWeight;
-            for (const card of cards) {
-                random -= card.weight;
-                if (random <= 0) {
-                    return card;
+            let resultCard;
+            // 最多循环10次，避免极端情况死循环，正常最多2-3次就会抽到不同的卡
+            for (let i = 0; i < 10; i++) {
+                // 用「当前时间戳+随机数」生成更均匀的随机种子，避免连续调用时随机数过于接近
+                const seed = Date.now() + Math.random() * 1000000;
+                let random = (seed % 1000000) / 1000000 * totalWeight;
+                for (const card of cards) {
+                    random -= card.weight;
+                    if (random <= 0) {
+                        resultCard = card;
+                        break;
+                    }
+                }
+                // 如果和上一次结果不同，或者是第一次抽卡，直接返回
+                if (lastDrawnCard === null || resultCard.value !== lastDrawnCard.value) {
+                    break;
                 }
             }
-            return cards[0];
+            // 记录本次结果，下次抽卡对比用
+            lastDrawnCard = resultCard;
+            return resultCard;
         }
         drawBtn.addEventListener('click', () => {
             if (isDrawing) return;
