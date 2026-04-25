@@ -229,7 +229,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎴 Labubu 抽卡模拟器</h1>
+        <h1>🎴 悠悠小朋友专属抽卡页面</h1>
         <div class="card-wrapper">
             <div class="card" id="card">
                 <div class="card-face card-front">
@@ -244,7 +244,7 @@
             <button class="draw-btn" id="drawBtn">抽 一 次</button>
             <button class="preview-btn" id="previewBtn">📖 卡牌预览</button>
         </div>
-        <p class="hint">稀有度越高，越难抽到哦~ 最高10分传奇卡，祝你好运！</p>
+        <p class="hint">2张相同的1分或2分卡可以兑换一次抽奖次数</p>
 
         <!-- 卡牌预览弹窗 -->
         <div class="modal" id="previewModal">
@@ -259,16 +259,16 @@
         </div>
     </div>
     <script>
-        // 卡片配置
+        // 卡片配置（全部等概率）
         const cards = [
-            { value: 1, name: '青铜', img: 'assets/img/card_1.jpg', weight: 20 },
-            { value: 2, name: '白银', img: 'assets/img/card_2.jpg', weight: 20 },
-            { value: 3, name: '黄金', img: 'assets/img/card_3.jpg', weight: 18 },
-            { value: 4, name: '铂金', img: 'assets/img/card_4.jpg', weight: 15 },
-            { value: 5, name: '钻石', img: 'assets/img/card_5.jpg', weight: 12 },
-            { value: 6, name: '至尊', img: 'assets/img/card_6.jpg', weight: 8 },
-            { value: 8, name: '王者', img: 'assets/img/card_8.jpg', weight: 5 },
-            { value: 10, name: '传奇', img: 'assets/img/card_10.jpg', weight: 2 }
+            { value: 1, name: '青铜', img: 'assets/img/card_1.jpg', weight: 1 },
+            { value: 2, name: '白银', img: 'assets/img/card_2.jpg', weight: 1 },
+            { value: 3, name: '黄金', img: 'assets/img/card_3.jpg', weight: 1 },
+            { value: 4, name: '铂金', img: 'assets/img/card_4.jpg', weight: 1 },
+            { value: 5, name: '钻石', img: 'assets/img/card_5.jpg', weight: 1 },
+            { value: 6, name: '至尊', img: 'assets/img/card_6.jpg', weight: 1 },
+            { value: 8, name: '王者', img: 'assets/img/card_8.jpg', weight: 1 },
+            { value: 10, name: '传奇', img: 'assets/img/card_10.jpg', weight: 1 }
         ];
         const cardEl = document.getElementById('card');
         const drawBtn = document.getElementById('drawBtn');
