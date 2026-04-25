@@ -400,7 +400,8 @@
                 // 先隐藏笑话区域，等动画结束再重置卡片
                 document.getElementById('cardWrapper').classList.remove('show-joke');
                 setTimeout(() => {
-                    // 重置状态
+                    // 重置状态，清空上一次的卡片图片，避免残留显示
+                    cardImg.src = '';
                     cardEl.classList.remove('flipped');
                     drawBtn.textContent = '抽 一 次';
                     hasDrawn = false;
