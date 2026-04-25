@@ -262,6 +262,14 @@
                 gap: 15px;
             }
         }
+        /* 版本号，右下角淡淡显示 */
+        .version {
+            position: fixed;
+            right: 15px;
+            bottom: 10px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -285,6 +293,7 @@
             <button class="preview-btn" id="previewBtn">📖 卡牌预览</button>
         </div>
         <p class="hint">2张相同的1分或2分卡可以兑换一次抽奖次数</p>
+        <div class="version">V1.0.3</div>
 
         <!-- 卡牌预览弹窗 -->
         <div class="modal" id="previewModal">
@@ -397,11 +406,13 @@
         drawBtn.addEventListener('click', () => {
             if (isDrawing) return;
             if (hasDrawn) {
-                // 先隐藏笑话区域，等动画结束再重置卡片
+                // 立刻清空上一次的卡片图片，避免翻转动画过程中显示旧卡
+                cardImg.src = '';
+                cardImg.alt = '';
+                // 隐藏笑话区域，等动画结束再重置卡片
                 document.getElementById('cardWrapper').classList.remove('show-joke');
                 setTimeout(() => {
-                    // 重置状态，清空上一次的卡片图片，避免残留显示
-                    cardImg.src = '';
+                    // 重置状态
                     cardEl.classList.remove('flipped');
                     drawBtn.textContent = '抽 一 次';
                     hasDrawn = false;
